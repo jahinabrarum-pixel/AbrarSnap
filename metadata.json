@@ -1,0 +1,6 @@
+{
+  "name": "AbrarSnap",
+  "description": "Capture moments. Create your world. A premium social media platform featuring stories, reels, real-time messaging, and creator tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

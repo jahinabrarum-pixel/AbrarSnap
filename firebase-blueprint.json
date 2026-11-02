@@ -1,0 +1,317 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile in AbrarSnap",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "username": { "type": "string", "maxLength": 30 },
+        "displayName": { "type": "string", "maxLength": 60 },
+        "bio": { "type": "string", "maxLength": 280 },
+        "avatarUrl": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "website": { "type": "string", "maxLength": 100 },
+        "isPrivate": { "type": "boolean" },
+        "accentColor": { "type": "string", "maxLength": 30 },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "postsCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "username", "displayName"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Admin authorization entry",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "grantedAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "User social media post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorUsername": { "type": "string" },
+        "authorDisplayName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "caption": { "type": "string", "maxLength": 2200 },
+        "mediaUrls": { "type": "array" },
+        "mediaTypes": { "type": "array" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "sharesCount": { "type": "number" },
+        "tags": { "type": "array" },
+        "visibility": { "type": "string", "enum": ["public", "followers", "private"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["authorId", "caption"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "Like record on post or reel",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "targetId": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["targetId", "userId"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Comment on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorUsername": { "type": "string" },
+        "authorDisplayName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "text": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["postId", "authorId", "text"]
+    },
+    "Follow": {
+      "title": "Follow",
+      "description": "Relationship between follower and following",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "followerId": { "type": "string" },
+        "followingId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "pending"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["followerId", "followingId", "status"]
+    },
+    "Story": {
+      "title": "Story",
+      "description": "Ephemeral 24-hour story",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorUsername": { "type": "string" },
+        "authorDisplayName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["image", "video", "text"] },
+        "caption": { "type": "string", "maxLength": 300 },
+        "accentColor": { "type": "string" },
+        "viewsCount": { "type": "number" },
+        "expiresAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["authorId", "mediaUrl"]
+    },
+    "StoryView": {
+      "title": "StoryView",
+      "description": "View tracking for a story",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "storyId": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["storyId", "userId"]
+    },
+    "Reel": {
+      "title": "Reel",
+      "description": "Short vertical video post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorUsername": { "type": "string" },
+        "authorDisplayName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "caption": { "type": "string", "maxLength": 1000 },
+        "musicTitle": { "type": "string", "maxLength": 100 },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "sharesCount": { "type": "number" },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["authorId", "videoUrl"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Chat thread between two or more participants",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "participantIds": { "type": "array" },
+        "participantNames": { "type": "array" },
+        "participantAvatars": { "type": "array" },
+        "lastMessage": { "type": "string", "maxLength": 500 },
+        "lastMessageSenderId": { "type": "string" },
+        "lastMessageAt": { "type": "string" },
+        "isGroup": { "type": "boolean" },
+        "groupName": { "type": "string", "maxLength": 60 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["participantIds"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Chat message within a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "conversationId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderUsername": { "type": "string" },
+        "senderAvatar": { "type": "string" },
+        "text": { "type": "string", "maxLength": 2000 },
+        "mediaUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["sent", "delivered", "seen"] },
+        "reactions": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["conversationId", "senderId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User event notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderUsername": { "type": "string" },
+        "senderAvatar": { "type": "string" },
+        "type": { "type": "string", "enum": ["like", "comment", "follow", "follow_request", "mention", "message"] },
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string" },
+        "text": { "type": "string", "maxLength": 250 },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["recipientId", "senderId", "type"]
+    },
+    "SavedPost": {
+      "title": "SavedPost",
+      "description": "Bookmark reference for a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["postId", "userId"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "Content or user moderation report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["post", "user", "comment", "reel"] },
+        "reason": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "dismissed"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["reporterId", "targetId", "targetType", "reason"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "Preferences and privacy settings for a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "theme": { "type": "string", "enum": ["dark", "light", "system"] },
+        "accentColor": { "type": "string", "maxLength": 30 },
+        "privateAccount": { "type": "boolean" },
+        "allowMentions": { "type": "string", "enum": ["everyone", "following", "none"] },
+        "onlineStatusVisible": { "type": "boolean" },
+        "notificationsEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile collection"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Admin authorization documents"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Social media posts"
+    },
+    "/likes/{likeId}": {
+      "schema": "Like",
+      "description": "Likes on posts and reels"
+    },
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on posts"
+    },
+    "/follows/{followId}": {
+      "schema": "Follow",
+      "description": "Social graph connections"
+    },
+    "/stories/{storyId}": {
+      "schema": "Story",
+      "description": "24-hour visual stories"
+    },
+    "/storyViews/{viewId}": {
+      "schema": "StoryView",
+      "description": "Story views tracker"
+    },
+    "/reels/{reelId}": {
+      "schema": "Reel",
+      "description": "Short vertical video reels"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Direct message and group chat threads"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Chat messages across conversations"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
+    },
+    "/savedPosts/{savedId}": {
+      "schema": "SavedPost",
+      "description": "Saved and bookmarked posts"
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Safety moderation reports"
+    },
+    "/userSettings/{settingId}": {
+      "schema": "UserSettings",
+      "description": "Per-user configuration settings"
+    }
+  }
+}
