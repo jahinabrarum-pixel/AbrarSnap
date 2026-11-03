@@ -64,11 +64,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ posts, o
   };
 
   const handleDeleteReportedPost = async (postId: string, reportId: string) => {
-    if (confirm('Delete this post and remove from platform?')) {
-      await deletePostById(postId);
-      if (onPostDeleted) onPostDeleted(postId);
-      await handleResolveReport(reportId, 'reviewed');
-    }
+    await deletePostById(postId);
+    if (onPostDeleted) onPostDeleted(postId);
+    await handleResolveReport(reportId, 'reviewed');
   };
 
   const handleToggleSuspendUser = (uid: string) => {

@@ -31,7 +31,21 @@ import {
 export function cleanFirestoreData<T extends Record<string, any>>(obj: T): Record<string, any> {
   const cleaned: Record<string, any> = {};
   for (const [key, val] of Object.entries(obj)) {
-    if (val !== undefined) {
+    if (val === undefined) {
+      continue;
+    }
+    if (val !== null && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
+      cleaned[key] = cleanFirestoreData(val);
+    } else if (Array.isArray(val)) {
+      cleaned[key] = val
+        .filter((item) => item !== undefined)
+        .map((item) => {
+          if (item !== null && typeof item === 'object' && !(item instanceof Date)) {
+            return cleanFirestoreData(item);
+          }
+          return item;
+        });
+    } else {
       cleaned[key] = val;
     }
   }
@@ -438,6 +452,52 @@ export async function isFollowing(followerId: string, followingId: string): Prom
     return snap.exists();
   } catch {
     return false;
+  }
+}
+
+export async function getFollowingIds(userId: string): Promise<string[]> {
+  try {
+    const q = query(collection(db, 'follows'), where('followerId', '==', userId));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data().followingId as string);
+  } catch {
+    return [];
+  }
+}
+
+export async function getUserFollowers(userId: string): Promise<UserProfile[]> {
+  try {
+    const q = query(collection(db, 'follows'), where('followingId', '==', userId));
+    const snap = await getDocs(q);
+    const followerIds = snap.docs.map((d) => d.data().followerId as string);
+    const users: UserProfile[] = [];
+    for (const fid of followerIds) {
+      const uSnap = await getDoc(doc(db, 'users', fid));
+      if (uSnap.exists()) {
+        users.push(uSnap.data() as UserProfile);
+      }
+    }
+    return users;
+  } catch {
+    return [];
+  }
+}
+
+export async function getUserFollowing(userId: string): Promise<UserProfile[]> {
+  try {
+    const q = query(collection(db, 'follows'), where('followerId', '==', userId));
+    const snap = await getDocs(q);
+    const followingIds = snap.docs.map((d) => d.data().followingId as string);
+    const users: UserProfile[] = [];
+    for (const fid of followingIds) {
+      const uSnap = await getDoc(doc(db, 'users', fid));
+      if (uSnap.exists()) {
+        users.push(uSnap.data() as UserProfile);
+      }
+    }
+    return users;
+  } catch {
+    return [];
   }
 }
 

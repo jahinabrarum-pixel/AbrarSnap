@@ -6,6 +6,8 @@ import { Post, Story } from '../types';
 import { Sparkles, PlusSquare, Flame, Clock, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+import { getFollowingIds } from '../firebase/services';
+
 interface HomePageProps {
   posts: Post[];
   stories: Story[];
@@ -33,14 +35,29 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   const { userProfile } = useAuth();
   const [feedFilter, setFeedFilter] = useState<'for_you' | 'following' | 'trending'>('for_you');
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
+
+  React.useEffect(() => {
+    if (userProfile?.uid) {
+      getFollowingIds(userProfile.uid).then(setFollowingIds);
+    }
+  }, [userProfile?.uid]);
 
   // Filter & sort posts based on selected tab
-  const filteredPosts = [...posts].sort((a, b) => {
-    if (feedFilter === 'trending') {
-      return (b.likesCount || 0) - (a.likesCount || 0);
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  const filteredPosts = posts
+    .filter((p) => {
+      if (feedFilter === 'following') {
+        if (!userProfile) return true;
+        return followingIds.includes(p.authorId) || p.authorId === userProfile.uid;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (feedFilter === 'trending') {
+        return (b.likesCount || 0) - (a.likesCount || 0);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   return (
     <div className="w-full max-w-xl mx-auto py-4 px-2 sm:px-4 flex flex-col gap-5">

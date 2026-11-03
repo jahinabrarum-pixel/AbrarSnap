@@ -42,7 +42,9 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         request.auth.uid == userId ||
         isAdmin() ||
-        incoming().diff(existing()).affectedKeys().hasOnly(['followersCount'])
+        incoming().diff(existing()).affectedKeys().hasOnly(['followersCount']) ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['followingCount']) ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['followersCount', 'followingCount'])
       );
       allow delete: if isAdmin();
     }

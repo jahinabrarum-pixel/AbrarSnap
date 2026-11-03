@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { X, Heart, Send, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Story } from '../../types';
 import { formatRelativeTime } from '../../utils/formatters';
-import { recordStoryView } from '../../firebase/services';
+import { recordStoryView, createNotification } from '../../firebase/services';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface StoryViewerModalProps {
@@ -70,6 +70,18 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   const handleSendReaction = (emoji: string) => {
     setReactionBurst(emoji);
+    if (userProfile && currentStory && currentStory.authorId !== userProfile.uid) {
+      createNotification({
+        recipientId: currentStory.authorId,
+        senderId: userProfile.uid,
+        senderUsername: userProfile.username,
+        senderAvatar: userProfile.avatarUrl || '',
+        type: 'like',
+        text: `reacted ${emoji} to your moment story`,
+        targetId: currentStory.id,
+        createdAt: new Date().toISOString(),
+      });
+    }
     setTimeout(() => setReactionBurst(null), 1000);
   };
 
@@ -204,8 +216,21 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             {replyText.trim() && (
               <button
                 onClick={() => {
+                  const txt = replyText.trim();
                   setReactionBurst('💌');
                   setReplyText('');
+                  if (userProfile && currentStory && currentStory.authorId !== userProfile.uid) {
+                    createNotification({
+                      recipientId: currentStory.authorId,
+                      senderId: userProfile.uid,
+                      senderUsername: userProfile.username,
+                      senderAvatar: userProfile.avatarUrl || '',
+                      type: 'comment',
+                      text: `replied to your story: "${txt.slice(0, 50)}${txt.length > 50 ? '...' : ''}"`,
+                      targetId: currentStory.id,
+                      createdAt: new Date().toISOString(),
+                    });
+                  }
                   setTimeout(() => setReactionBurst(null), 1000);
                 }}
                 className="p-2 rounded-full bg-pink-500 text-white hover:bg-pink-400 transition-colors cursor-pointer"
