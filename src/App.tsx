@@ -45,6 +45,7 @@ function MainApp() {
 
   const [currentTab, setCurrentTab] = useState<string>('home');
   const [selectedUser, setSelectedUser] = useState<UserProfile | undefined>(undefined);
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
 
   // Global feeds state - loads strictly from real Firestore
   const [posts, setPosts] = useState<Post[]>([]);
@@ -97,21 +98,31 @@ function MainApp() {
     return <LoadingScreen message="Initializing AbrarSnap platform..." />;
   }
 
-  // If not logged in, show Landing page
-  if (!userProfile && currentTab !== 'auth' && currentTab !== 'explore_guest') {
+  // If user explicitly navigated to Auth tab
+  if (!userProfile && currentTab === 'auth') {
     return (
-      <LandingPage
-        onGetStarted={() => setCurrentTab('auth')}
-        onExploreGuest={() => setCurrentTab('home')}
+      <AuthPage
+        onSuccess={() => {
+          setIsGuestMode(false);
+          setCurrentTab('home');
+        }}
+        onExploreGuest={() => {
+          setIsGuestMode(true);
+          setCurrentTab('home');
+        }}
       />
     );
   }
 
-  if (!userProfile && currentTab === 'auth') {
+  // If not logged in and not in guest mode, show Landing page
+  if (!userProfile && !isGuestMode) {
     return (
-      <AuthPage
-        onSuccess={() => setCurrentTab('home')}
-        onExploreGuest={() => setCurrentTab('home')}
+      <LandingPage
+        onGetStarted={() => setCurrentTab('auth')}
+        onExploreGuest={() => {
+          setIsGuestMode(true);
+          setCurrentTab('home');
+        }}
       />
     );
   }
@@ -141,6 +152,22 @@ function MainApp() {
     setCurrentTab('search');
   };
 
+  const handleOpenCreatePost = () => {
+    if (!userProfile) {
+      setCurrentTab('auth');
+    } else {
+      setShowCreatePost(true);
+    }
+  };
+
+  const handleOpenCreateStory = () => {
+    if (!userProfile) {
+      setCurrentTab('auth');
+    } else {
+      setShowCreateStory(true);
+    }
+  };
+
   const renderContent = () => {
     switch (currentTab) {
       case 'home':
@@ -148,8 +175,8 @@ function MainApp() {
           <HomePage
             posts={posts}
             stories={stories}
-            onOpenCreatePost={() => setShowCreatePost(true)}
-            onOpenCreateStory={() => setShowCreateStory(true)}
+            onOpenCreatePost={handleOpenCreatePost}
+            onOpenCreateStory={handleOpenCreateStory}
             onSelectStory={(s, i) => setViewingStoryIndex(i)}
             onOpenComments={(p) => setActiveCommentsPost(p)}
             onOpenShare={(p) => setActiveSharePost(p)}
@@ -318,7 +345,7 @@ function MainApp() {
             setSelectedUser(undefined);
             setCurrentTab(t);
           }}
-          onOpenCreatePost={() => setShowCreatePost(true)}
+          onOpenCreatePost={handleOpenCreatePost}
           unreadMessagesCount={unreadMessagesCount}
           unreadNotifsCount={unreadNotifsCount}
         />
@@ -344,7 +371,7 @@ function MainApp() {
           setSelectedUser(undefined);
           setCurrentTab(t);
         }}
-        onOpenCreatePost={() => setShowCreatePost(true)}
+        onOpenCreatePost={handleOpenCreatePost}
       />
 
       {/* Global Modals */}

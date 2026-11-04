@@ -45,39 +45,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Listen to auth state changes
   useEffect(() => {
+    let isMounted = true;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!isMounted) return;
       setCurrentUser(user);
       if (user) {
+        const isTargetAdmin = user.email === 'abrarjahin702@gmail.com';
+        const fallbackProfile: UserProfile = {
+          uid: user.uid,
+          email: user.email || '',
+          username: (user.email?.split('@')[0] || `user_${user.uid.slice(0, 6)}`).toLowerCase().replace(/[^a-z0-9_]/g, ''),
+          displayName: user.displayName || user.email?.split('@')[0] || 'AbrarSnap Creator',
+          bio: 'Creating my world with AbrarSnap ✨',
+          avatarUrl: user.photoURL || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
+          coverUrl: '',
+          website: '',
+          isPrivate: false,
+          accentColor: 'violet',
+          role: isTargetAdmin ? 'admin' : 'user',
+          followersCount: 0,
+          followingCount: 0,
+          postsCount: 0,
+          isVerified: isTargetAdmin,
+          createdAt: new Date().toISOString(),
+        };
+
         try {
           const userDocRef = doc(db, 'users', user.uid);
           const snap = await getDoc(userDocRef);
+
+          if (!isMounted) return;
 
           if (snap.exists()) {
             setUserProfile(snap.data() as UserProfile);
           } else {
             // First time login - bootstrap real user profile
-            const isTargetAdmin = user.email === 'abrarjahin702@gmail.com';
-            const newProfile: UserProfile = {
-              uid: user.uid,
-              email: user.email || '',
-              username: (user.email?.split('@')[0] || `user_${user.uid.slice(0, 6)}`).toLowerCase().replace(/[^a-z0-9_]/g, ''),
-              displayName: user.displayName || 'AbrarSnap Creator',
-              bio: 'Creating my world with AbrarSnap ✨',
-              avatarUrl: user.photoURL || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.uid}`,
-              coverUrl: '',
-              website: '',
-              isPrivate: false,
-              accentColor: 'violet',
-              role: isTargetAdmin ? 'admin' : 'user',
-              followersCount: 0,
-              followingCount: 0,
-              postsCount: 0,
-              isVerified: isTargetAdmin,
-              createdAt: new Date().toISOString(),
-            };
-
-            await setDoc(userDocRef, newProfile);
-            setUserProfile(newProfile);
+            await setDoc(userDocRef, fallbackProfile);
+            if (isMounted) {
+              setUserProfile(fallbackProfile);
+            }
 
             if (isTargetAdmin) {
               try {
@@ -91,24 +97,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           }
-        } catch (error) {
-          console.error('Failed to load profile:', error);
-          handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+        } catch (error: any) {
+          console.warn('Profile load notice (using fallback profile):', error?.message || error);
+          if (isMounted) {
+            setUserProfile(fallbackProfile);
+          }
+          const isOfflineOrUnavailable =
+            error?.message?.includes('offline') ||
+            error?.code === 'unavailable' ||
+            error?.message?.includes('network-request-failed');
+          if (!isOfflineOrUnavailable) {
+            try {
+              handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+            } catch (loggedErr) {
+              console.warn('Firestore profile get error logged:', loggedErr);
+            }
+          }
         }
       } else {
-        setUserProfile(null);
+        if (isMounted) {
+          setUserProfile(null);
+        }
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
-      console.error('Google Sign In Error:', error);
+      if (
+        error?.code !== 'auth/unauthorized-domain' &&
+        error?.code !== 'auth/configuration-not-found' &&
+        error?.code !== 'auth/popup-closed-by-user'
+      ) {
+        console.error('Google Sign In Error:', error);
+      } else {
+        console.warn('Google Sign In Notice:', error?.message || error?.code);
+      }
       throw error;
     }
   };

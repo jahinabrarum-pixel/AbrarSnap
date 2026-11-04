@@ -126,6 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* User Mini Profile & Controls Footer */}
       <div className="pt-4 border-t border-purple-900/20 flex flex-col gap-3">
+        {/* Theme and action controls */}
         <div className="flex items-center justify-between px-2">
           {/* Theme switch button */}
           <button
@@ -136,18 +137,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Logout */}
-          <button
-            onClick={logout}
-            title="Sign out"
-            className="p-2 rounded-xl text-purple-300/70 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          {/* Logout if authenticated */}
+          {userProfile && (
+            <button
+              onClick={logout}
+              title="Sign out"
+              className="p-2 rounded-xl text-purple-300/70 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        {/* Current user card */}
-        {userProfile && (
+        {/* Current user card or Guest Sign In */}
+        {userProfile ? (
           <div
             onClick={() => onSelectTab('profile')}
             className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/5 cursor-pointer transition-colors group"
@@ -174,6 +177,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
             </div>
           </div>
+        ) : (
+          <button
+            onClick={() => onSelectTab('auth')}
+            className="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer text-center"
+          >
+            Sign In / Register
+          </button>
         )}
       </div>
     </aside>
